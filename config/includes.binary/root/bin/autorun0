@@ -1,0 +1,56 @@
+#!/bin/bash
+
+function prematureExit {
+    echo "${1}"
+    # Anyway let say we are ok with it.
+    exit 0
+}
+
+function exitIfMounted {
+    grep -F "${1}" /proc/mounts > /dev/null && prematureExit "${1} is mounted, exiting ..."
+}
+function log {
+    pfx=`date -Iseconds`
+    echo "${pfx}: ${1}"
+}
+
+BOOTPARTLABEL="bootpart"
+ROOTPARTLABEL="rootpart"
+RESPARTLABEL="BkWorkstation"
+RESPARTNAME=`blkid -t LABEL="${RESPARTLABEL}" | cut -d: -f1`
+[[ ! -z "${RESPARTNAME}" ]] || prematureExit "Cannot get the BackupWorkstation Location"
+BOOTPARTNAME=`blkid -t PARTLABEL="${BOOTPARTLABEL}" | cut -d: -f1`
+[[ ! -z "${BOOTPARTNAME}" ]] || prematureExit "Cannot get the boot part name"
+ROOTPARTNAME=`blkid -t PARTLABEL="${ROOTPARTLABEL}" | cut -d: -f1`
+[[ ! -z "${ROOTPARTNAME}" ]] || prematureExit "Cannot get the root part name"
+log "RESPARTNAME:${RESPARTNAME}"
+log "BOOTPARTNAME:${BOOTPARTNAME}"
+log "ROOTPARTNAME:${ROOTPARTNAME}"
+exitIfMounted "${RESPARTNAME}"
+exitIfMounted "${BOOTPARTNAME}"
+exitIfMounted "${ROOTPARTNAME}"
+mountRootDir="/mnt/rawImagesBackup"
+resMountDir="${mountRootDir}/res"
+todayDate=`date -Iminutes`
+mkdir -p "${resMountDir}"
+mount "${RESPARTNAME}" /mnt/rawImagesBackup/res || prematureExit "Cannot mount ${RESPARTNAME}"
+savedRawDiskImagesDir="${resMountDir}/devices/rawDiskImages"
+mkdir -p "${savedRawDiskImagesDir}"
+[[ -d "${savedRawDiskImagesDir}" ]] || prematureExit "Cannot find ${savedRawDiskImagesDir}"
+bootPartImageName="${savedRawDiskImagesDir}/${todayDate}-bootDir.img"
+rootPartImageName="${savedRawDiskImagesDir}/${todayDate}-rootDir.img"
+log "Start saving ${bootPartImageName}"
+sha512sum "${BOOTPARTNAME}" > "${bootPartImageName}.sha512sum"
+dd if="${BOOTPARTNAME}" of="${bootPartImageName}" bs=1M status=progress
+sha512sum "${bootPartImageName}" >> "${bootPartImageName}.sha512sum"
+log "Done saving ${bootPartImageName}"
+log "Start saving ${rootPartImageName}"
+sha512sum "${ROOTPARTNAME}" > "${rootPartImageName}.sha512sum"
+dd if="${ROOTPARTNAME}" of="${rootPartImageName}" bs=1M status=progress
+sha512sum "${rootPartImageName}" >> "${rootPartImageName}.sha512sum"
+log "End saving ${rootPartImageName}"
+sha512sum -c "${bootPartImageName}.sha512sum" || prematureExit "Boot Image was not saved correctly"
+sha512sum -c "${rootPartImageName}.sha512sum" || prematureExit "Root Image was not saved correctly"
+log "All went well, so we can shutdown peacefully"
+shutdown now
+exit 0
