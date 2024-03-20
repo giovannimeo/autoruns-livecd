@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+
+lb config noauto \
+   --mirror-bootstrap http://deb.debian.org/debian/ \
+   --mirror-binary http://deb.debian.org/debian/ \
+   --security false \
+   --updates false \
+   --distribution bookworm \
+   --debian-installer live \
+   --debian-installer-distribution bookworm \
+   --cache-packages false \
+   --archive-areas "main non-free-firmware" \
+   --iso-volume d-live 12.5.0 st amd64 \
+   --source true \
+	"${@}"
