@@ -12,6 +12,9 @@ lb config noauto \
    --debian-installer-distribution bookworm \
    --cache-packages false \
    --archive-areas "main non-free-firmware" \
-   --iso-volume d-live 12.5.0 st amd64 \
+   --iso-volume 'autoruns' \
+   --bootappend-live 'nouveau.blacklist=1' \
+   --bootappend-live-failsafe 'nouveau.blacklist=1' \
+   --uefi-secure-boot enable \
    --source true \
-	"${@}"
+   "${@}"
