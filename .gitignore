@@ -22,3 +22,4 @@ config/source
 *.live.contents
 *.live.tar
 source/**
+*~
