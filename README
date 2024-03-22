@@ -1,0 +1,8 @@
+In order to build a live-cd for autorun execute the following steps:
+
+0) sudo apt install -y live-build
+1) sudo lb clean
+2) sudo lb config
+3) sudo lb build
+
+at the end a .iso would be present if all succeeds
