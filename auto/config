@@ -13,8 +13,9 @@ lb config noauto \
    --cache-packages false \
    --archive-areas "main non-free-firmware" \
    --iso-volume 'autoruns' \
-   --bootappend-live 'nouveau.blacklist=1' \
-   --bootappend-live-failsafe 'nouveau.blacklist=1' \
+   --image-name 'autoruns' \
+   --bootappend-live 'boot=live components quiet splash findiso=${iso_path} nouveau.blacklist=1' \
+   --bootappend-live-failsafe 'boot=live components memtest noapic noapm nodma nomce nolapic nosmp nosplash vga=788 nouveau.blacklist=1' \
    --uefi-secure-boot enable \
    --source true \
    "${@}"
